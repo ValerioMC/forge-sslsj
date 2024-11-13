@@ -1,5 +1,6 @@
 package com.forge.sslsj.controller;// package: com.example.demo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forge.sslsj.ForgeSslsjApplication;
 import com.forge.sslsj.model.AuthenticationRequest;
 import com.forge.sslsj.model.AuthenticationResponse;
@@ -7,30 +8,31 @@ import com.forge.sslsj.payload.PersonRequest;
 import com.forge.sslsj.payload.PersonResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = ForgeSslsjApplication.class)
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class PersonIntegrationTest {
 
     @Autowired
-    private RestTemplate restTemplate;
+    private MockMvc mockMvc;
 
-    @LocalServerPort
-    private int port;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
-    public void testCreateAndGetPerson() {
+    public void testCreateAndGetPerson() throws Exception {
         String jwtToken = authenticateAndGetToken();
 
         HttpHeaders headers = new HttpHeaders();
@@ -49,30 +51,37 @@ public class PersonIntegrationTest {
         personRequest.setCountry("Sample Country");
         personRequest.setPostalCode("12345");
 
-        
-        // Perform a POST request to create a new person
-        ResponseEntity<PersonResponse> createResponse = restTemplate.postForEntity("/api/persons", new HttpEntity<>(personRequest, headers), PersonResponse.class);
-        assertEquals(HttpStatus.OK, createResponse.getStatusCode());
-        assertNotNull(createResponse.getBody());
-        Long personId = createResponse.getBody().getId();
+        MockHttpServletRequestBuilder createPersonRequest =
+                MockMvcRequestBuilders.post("/api/persons").headers(headers)
+                        .content(objectMapper.writeValueAsString(personRequest))
+                        .contentType(MediaType.APPLICATION_JSON);
 
-        // Perform a GET request to retrieve the created person
-        ResponseEntity<PersonResponse> getResponse = restTemplate.getForEntity("/api/persons/" + personId, PersonResponse.class);
-        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
-        assertNotNull(getResponse.getBody());
+        String contentAsString = mockMvc.perform(createPersonRequest)
+                .andExpect(status().isOk()).andReturn()
+                .getResponse().getContentAsString();
+
+        PersonResponse personResponse = objectMapper.readValue(contentAsString, PersonResponse.class);
 
         // Validate the retrieved person details
-        assertEquals(personRequest.getFirstName(), getResponse.getBody().getFirstName());
-        assertEquals(personRequest.getLastName(), getResponse.getBody().getLastName());
-        assertEquals(personRequest.getEmail(), getResponse.getBody().getEmail());
+        assertEquals(personRequest.getFirstName(), personResponse.getFirstName());
+        assertEquals(personRequest.getLastName(), personResponse.getLastName());
+        assertEquals(personRequest.getEmail(), personResponse.getEmail());
     }
 
-    private String authenticateAndGetToken() {
+    private String authenticateAndGetToken() throws Exception {
+        // Prepare the login request
         AuthenticationRequest loginRequest = new AuthenticationRequest("user", "password");
 
-        ResponseEntity<AuthenticationResponse> responseEntity = restTemplate.postForEntity("http://localhost:"+ port + "/authenticate", loginRequest, AuthenticationResponse.class);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        return responseEntity.getBody().jwt();
+        // Convert request to JSON
+        String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
+
+        MockHttpServletRequestBuilder request =
+                MockMvcRequestBuilders.post("/authenticate")
+                        .content(loginRequestJson).contentType(MediaType.APPLICATION_JSON);
+
+        // Perform the POST request and capture the result
+        String jwtToken = mockMvc.perform(request).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        return objectMapper.readValue(jwtToken, AuthenticationResponse.class).jwt();
     }
 }
