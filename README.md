@@ -81,10 +81,6 @@ docker run --name sonarqube_db -e POSTGRES_USER=sonar -e POSTGRES_PASSWORD=sonar
 docker run --name sonarqube --link sonarqube_db:db -e SONARQUBE_JDBC_URL=jdbc:postgresql://db:5432/sonarqube -e SONARQUBE_JDBC_USERNAME=sonar -e SONARQUBE_JDBC_PASSWORD=sonar -p 9000:9000 -d sonarqube
 ```
 
-### Docker Compose
-
-Alternatively, you can use Docker Compose for SonarQube and its PostgreSQL dependency. Here’s a `docker-compose.yml`
-file for this setup:
 
 ```yaml
 version: '3.8'
