@@ -63,10 +63,6 @@ To optimize the setup based on your specific project requirements, you may adjus
         command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     ```
 
-# Docker Setup
-
-To run this project locally, you will need to set up the following Docker images.
-
 ## SonarQube Docker Image
 
 To configure a local SonarQube server for code quality and code coverage analysis, you can use the official SonarQube
@@ -237,7 +233,61 @@ Replace `<your_sonar_token>` with your actual SonarQube token.
 
 To run tests with coverage and upload the results to SonarQube, use the following Maven commands:
 
-```sh
+```shell
 mvn clean verify
 mvn sonar:sonar
+```
+
+# Generate and use archetype beased on project
+
+
+### Step 1: Create a Maven Archetype Project
+
+```shell
+mvn archetype:create-from-project \
+-Darchetype.properties=archetype.properties
+```
+
+### Navigate to the generated archetype project
+
+```shell
+cd target/generated-sources/archetype
+```
+
+### Step 2: Build and Install the Archetype Locally
+
+```shell
+mvn clean install
+```
+
+### Step 3: Deploy the Archetype to Nexus Repository
+
+```shell
+mvn deploy:deploy-file \
+-DgroupId=com.forge.sslsj \
+-DartifactId=forge-sslsj \
+-Dversion=1.0.0 \
+-Dpackaging=jar \
+-Dfile=target/forge-sslsj-0.0.1-SNAPSHOT.jar \
+-DgeneratePom=true \
+-DrepositoryId=nexus-repository-id \
+-Durl=https://your-nexus-repo/repository/maven-releases/
+```
+
+### Step 4: Create a New Project Based on the Archetype
+
+```shell
+mvn archetype:generate \
+    -DarchetypeGroupId=com.forge.sslsj \
+    -DarchetypeArtifactId=forge-sslsj-archetype \
+    -DarchetypeVersion=0.0.1-SNAPSHOT \
+    -DgroupId=com.example \
+    -DartifactId=new-project \
+    -Dversion=0.0.1-SNAPSHOT
+```
+
+### Navigate to the newly created project directory
+
+```shell
+cd new-project
 ```
