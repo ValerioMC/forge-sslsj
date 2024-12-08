@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+           http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
+
+    <changeSet id="1" author="tuo_nome">
+        <loadData
+                file="db/csv/acl_sid.csv"
+                tableName="acl_sid"
+                separator=",">
+            <column name="principal"/>
+            <column name="sid"/>
+        </loadData>
+
+        <loadData
+                file="db/csv/acl_class.csv"
+                tableName="acl_class"
+                separator=",">
+            <column name="class"/>
+        </loadData>
+
+        <loadData
+                file="db/csv/message.csv"
+                tableName="messages"
+                separator=",">
+            <column name="content"/>
+        </loadData>
+
+        <loadData
+                file="db/csv/acl_object_identity.csv"
+                tableName="acl_object_identity"
+                separator=",">
+            <column name="object_id_class"/>
+            <column name="object_id_identity"/>
+            <column name="parent_object"/>
+            <column name="owner_sid"/>
+            <column name="entries_inheriting"/>
+        </loadData>
+
+        <loadData
+                file="db/csv/acl_entry.csv"
+                tableName="acl_entry"
+                separator=",">
+            <column name="acl_object_identity"/>
+            <column name="ace_order"/>
+            <column name="sid"/>
+            <column name="mask"/>
+            <column name="granting"/>
+            <column name="audit_success"/>
+            <column name="audit_failure"/>
+        </loadData>
+    </changeSet>
+</databaseChangeLog>

@@ -9,8 +9,8 @@
     <property name="blobType" value="blob" dbms="postgresql"/>
     <property name="uuidType" value="uuid" dbms="postgresql"/>
     <property name="datetimeType" value="datetime" dbms="postgresql"/>
+    <include file="db/changelog/01-acl-schema.xml"/>
     <include file="db/changelog/2024/01/01-01-changelog.xml"/>
     <include file="db/changelog/2024/11/13-01-changelog.xml"/>
-
-
+    <include file="db/changelog/02-acl-data.xml"/>
 </databaseChangeLog>
