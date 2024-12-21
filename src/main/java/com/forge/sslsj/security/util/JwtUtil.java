@@ -33,7 +33,6 @@ public class JwtUtil {
 
     public String generateToken(String username) {
         Map<String, String> map = new HashMap<>();
-        map.put("how about click?", "it sucks, for sure!");
         return Jwts.builder()
                 .subject(username)
                 .claims().add(map).and()
